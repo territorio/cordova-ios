@@ -41,7 +41,6 @@
     <plugins>
         <plugin name="Device" value="CDVDevice" />
         <plugin name="Logger" value="CDVLogger" />
-        <plugin name="Compass" value="CDVLocation" />
         <plugin name="Camera" value="CDVCamera" />
         <plugin name="NetworkStatus" value="CDVConnection" />
         <plugin name="Contacts" value="CDVContacts" />
