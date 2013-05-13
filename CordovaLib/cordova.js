@@ -1,6 +1,5 @@
 // Platform: ios
-// 2.7.0rc1-9-g2dde8a7
-// File generated at :: Thu May 02 2013 12:01:11 GMT-0700 (PDT)
+// 2.7.0rc1-17-g64dddf4
 /*
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
@@ -20,7 +19,7 @@
  under the License.
 */
 ;(function() {
-var CORDOVA_JS_BUILD_LABEL = '2.7.0rc1-9-g2dde8a7';
+var CORDOVA_JS_BUILD_LABEL = '2.7.0rc1-17-g64dddf4';
 // file: lib/scripts/require.js
 
 var require,
@@ -1343,39 +1342,6 @@ var CaptureVideoOptions = function(){
 };
 
 module.exports = CaptureVideoOptions;
-
-});
-
-// file: lib/common/plugin/CompassError.js
-define("cordova/plugin/CompassError", function(require, exports, module) {
-
-/**
- *  CompassError.
- *  An error code assigned by an implementation when an error has occurred
- * @constructor
- */
-var CompassError = function(err) {
-    this.code = (err !== undefined ? err : null);
-};
-
-CompassError.COMPASS_INTERNAL_ERR = 0;
-CompassError.COMPASS_NOT_SUPPORTED = 20;
-
-module.exports = CompassError;
-
-});
-
-// file: lib/common/plugin/CompassHeading.js
-define("cordova/plugin/CompassHeading", function(require, exports, module) {
-
-var CompassHeading = function(magneticHeading, trueHeading, headingAccuracy, timestamp) {
-  this.magneticHeading = magneticHeading;
-  this.trueHeading = trueHeading;
-  this.headingAccuracy = headingAccuracy;
-  this.timestamp = timestamp || new Date().getTime();
-};
-
-module.exports = CompassHeading;
 
 });
 
@@ -3943,105 +3909,6 @@ modulemapper.clobbers('cordova/plugin/capture', 'navigator.device.capture');
 
 });
 
-// file: lib/common/plugin/compass.js
-define("cordova/plugin/compass", function(require, exports, module) {
-
-var argscheck = require('cordova/argscheck'),
-    exec = require('cordova/exec'),
-    utils = require('cordova/utils'),
-    CompassHeading = require('cordova/plugin/CompassHeading'),
-    CompassError = require('cordova/plugin/CompassError'),
-    timers = {},
-    compass = {
-        /**
-         * Asynchronously acquires the current heading.
-         * @param {Function} successCallback The function to call when the heading
-         * data is available
-         * @param {Function} errorCallback The function to call when there is an error
-         * getting the heading data.
-         * @param {CompassOptions} options The options for getting the heading data (not used).
-         */
-        getCurrentHeading:function(successCallback, errorCallback, options) {
-            argscheck.checkArgs('fFO', 'compass.getCurrentHeading', arguments);
-
-            var win = function(result) {
-                var ch = new CompassHeading(result.magneticHeading, result.trueHeading, result.headingAccuracy, result.timestamp);
-                successCallback(ch);
-            };
-            var fail = errorCallback && function(code) {
-                var ce = new CompassError(code);
-                errorCallback(ce);
-            };
-
-            // Get heading
-            exec(win, fail, "Compass", "getHeading", [options]);
-        },
-
-        /**
-         * Asynchronously acquires the heading repeatedly at a given interval.
-         * @param {Function} successCallback The function to call each time the heading
-         * data is available
-         * @param {Function} errorCallback The function to call when there is an error
-         * getting the heading data.
-         * @param {HeadingOptions} options The options for getting the heading data
-         * such as timeout and the frequency of the watch. For iOS, filter parameter
-         * specifies to watch via a distance filter rather than time.
-         */
-        watchHeading:function(successCallback, errorCallback, options) {
-            argscheck.checkArgs('fFO', 'compass.watchHeading', arguments);
-            // Default interval (100 msec)
-            var frequency = (options !== undefined && options.frequency !== undefined) ? options.frequency : 100;
-            var filter = (options !== undefined && options.filter !== undefined) ? options.filter : 0;
-
-            var id = utils.createUUID();
-            if (filter > 0) {
-                // is an iOS request for watch by filter, no timer needed
-                timers[id] = "iOS";
-                compass.getCurrentHeading(successCallback, errorCallback, options);
-            } else {
-                // Start watch timer to get headings
-                timers[id] = window.setInterval(function() {
-                    compass.getCurrentHeading(successCallback, errorCallback);
-                }, frequency);
-            }
-
-            return id;
-        },
-
-        /**
-         * Clears the specified heading watch.
-         * @param {String} watchId The ID of the watch returned from #watchHeading.
-         */
-        clearWatch:function(id) {
-            // Stop javascript timer & remove from timer list
-            if (id && timers[id]) {
-                if (timers[id] != "iOS") {
-                    clearInterval(timers[id]);
-                } else {
-                    // is iOS watch by filter so call into device to stop
-                    exec(null, null, "Compass", "stopHeading", []);
-                }
-                delete timers[id];
-            }
-        }
-    };
-
-module.exports = compass;
-
-});
-
-// file: lib/common/plugin/compass/symbols.js
-define("cordova/plugin/compass/symbols", function(require, exports, module) {
-
-
-var modulemapper = require('cordova/modulemapper');
-
-modulemapper.clobbers('cordova/plugin/CompassHeading', 'CompassHeading');
-modulemapper.clobbers('cordova/plugin/CompassError', 'CompassError');
-modulemapper.clobbers('cordova/plugin/compass', 'navigator.compass');
-
-});
-
 // file: lib/common/plugin/console-via-logger.js
 define("cordova/plugin/console-via-logger", function(require, exports, module) {
 
@@ -5183,7 +5050,7 @@ define("cordova/plugin/ios/logger/plugininit", function(require, exports, module
 
 // use the native logger
 var logger = require("cordova/plugin/logger");
-logger.useConsole(false);
+logger.useConsole(true);
 
 });
 
@@ -5240,9 +5107,12 @@ var exec    = require('cordova/exec');
 var utils   = require('cordova/utils');
 
 var UseConsole   = true;
+var UseLogger    = true;
 var Queued       = [];
 var DeviceReady  = false;
 var CurrentLevel;
+
+var originalConsole = console;
 
 /**
  * Logging levels
@@ -5304,8 +5174,7 @@ logger.level = function (value) {
  * Getter/Setter for the useConsole functionality
  *
  * When useConsole is true, the logger will log via the
- * browser 'console' object.  Otherwise, it will use the
- * native Logger plugin.
+ * browser 'console' object.
  */
 logger.useConsole = function (value) {
     if (arguments.length) UseConsole = !!value;
@@ -5327,6 +5196,18 @@ logger.useConsole = function (value) {
     }
 
     return UseConsole;
+};
+
+/**
+ * Getter/Setter for the useLogger functionality
+ *
+ * When useLogger is true, the logger will log via the
+ * native Logger plugin.
+ */
+logger.useLogger = function (value) {
+    // Enforce boolean
+    if (arguments.length) UseLogger = !!value;
+    return UseLogger;
 };
 
 /**
@@ -5398,24 +5279,26 @@ logger.logLevel = function(level /* , ... */) {
         return;
     }
 
-    // if not using the console, use the native logger
-    if (!UseConsole) {
+    // Log using the native logger if that is enabled
+    if (UseLogger) {
         exec(null, null, "Logger", "logLevel", [level, message]);
-        return;
     }
 
-    // make sure console is not using logger
-    if (console.__usingCordovaLogger) {
-        throw new Error("console and logger are too intertwingly");
-    }
+    // Log using the console if that is enabled
+    if (UseConsole) {
+        // make sure console is not using logger
+        if (console.__usingCordovaLogger) {
+            throw new Error("console and logger are too intertwingly");
+        }
 
-    // log to the console
-    switch (level) {
-        case logger.LOG:   console.log(message); break;
-        case logger.ERROR: console.log("ERROR: " + message); break;
-        case logger.WARN:  console.log("WARN: "  + message); break;
-        case logger.INFO:  console.log("INFO: "  + message); break;
-        case logger.DEBUG: console.log("DEBUG: " + message); break;
+        // log to the console
+        switch (level) {
+            case logger.LOG:   originalConsole.log(message); break;
+            case logger.ERROR: originalConsole.log("ERROR: " + message); break;
+            case logger.WARN:  originalConsole.log("WARN: "  + message); break;
+            case logger.INFO:  originalConsole.log("INFO: "  + message); break;
+            case logger.DEBUG: originalConsole.log("DEBUG: " + message); break;
+        }
     }
 };
 
