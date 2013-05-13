@@ -25,7 +25,6 @@
 #import "CDVURLProtocol.h"
 #import "CDVInvokedUrlCommand.h"
 
-#import "CDVAccelerometer.h"
 #import "CDVBattery.h"
 #import "CDVCamera.h"
 #import "CDVCapture.h"
