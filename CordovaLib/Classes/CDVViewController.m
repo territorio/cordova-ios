@@ -276,15 +276,6 @@
 
     self.webView.scalesPageToFit = [enableViewportScale boolValue];
 
-    /*
-     * Fire up the GPS Service right away as it takes a moment for data to come back.
-     */
-
-    if ([enableLocation boolValue]) {
-        NSLog(@"Deprecated: The 'EnableLocation' boolean property is deprecated in 2.5.0, and will be removed in 3.0.0. Use the 'onload' boolean attribute (of the CDVLocation plugin.");
-        [[self.commandDelegate getCommandInstance:@"Geolocation"] getLocation:[CDVInvokedUrlCommand new]];
-    }
-
     if (hideKeyboardFormAccessoryBar) {
         __weak CDVViewController* weakSelf = self;
         [[NSNotificationCenter defaultCenter] addObserverForName:UIKeyboardWillShowNotification
