@@ -1,5 +1,5 @@
 // Platform: ios
-// 2.7.0rc1-48-gfa57a36
+// 2.7.0rc1-52-g75b136a
 /*
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
@@ -19,7 +19,7 @@
  under the License.
 */
 ;(function() {
-var CORDOVA_JS_BUILD_LABEL = '2.7.0rc1-48-gfa57a36';
+var CORDOVA_JS_BUILD_LABEL = '2.7.0rc1-52-g75b136a';
 // file: lib/scripts/require.js
 
 var require,
@@ -6119,7 +6119,7 @@ require('cordova/channel').onNativeReady.fire();
         finishPluginLoading();
     };
     try { // we commented we were going to try, so let us actually try and catch
-        xhr.open('GET', '/cordova_plugins.json', true); // Async
+        xhr.open('GET', 'cordova_plugins.json', true); // Async
         xhr.send();
     } catch(err){
         finishPluginLoading();
